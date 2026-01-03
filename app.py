@@ -1,7 +1,12 @@
 import streamlit as st
 import numpy as np
-import tensorflow as tf
 import time
+
+# Use only TFLite interpreter instead of full TensorFlow
+try:
+    from tensorflow import lite as tflite
+except ImportError:
+    import tensorflow.lite as tflite
 
 # --- 1. PAGE CONFIG (MUST BE FIRST) ---
 st.set_page_config(page_title="Edge AI Digital Twin", layout="wide")
@@ -20,7 +25,7 @@ MAX_VALS = BASE_VALS + 60
 def load_model():
     # Make sure 'engine_model.tflite' is in the same folder!
     try:
-        interpreter = tf.lite.Interpreter(model_path="engine_model.tflite")
+        interpreter = tflite.Interpreter(model_path="engine_model.tflite")
         interpreter.allocate_tensors()
         return interpreter
     except Exception as e:
@@ -41,14 +46,39 @@ if interpreter:
 
     with col1:
         st.header("Control Panel")
-        simulation_speed = st.slider("Simulation Speed", 0.1, 2.0, 0.5)
+        st.markdown("""
+        **What is this?**  
+        The control panel allows you to configure and start the engine simulation.
+        
+        **Role:**  
+        - Adjust the simulation speed to control how fast the engine degrades
+        - Initiate the real-time monitoring and AI-driven control system
+        - Watch as the Edge AI makes autonomous decisions to protect the engine
+        """)
+        simulation_speed = st.slider("Simulation Speed (Lower = Faster, Higher = Slower)", 0.1, 2.0, 0.5)
+        st.caption("⬅️ Fast (0.1s delay) | Slow (2.0s delay) ➡️")
         start_btn = st.button("Start Engine Simulation", type="primary")
 
     with col2:
         st.header("Live Telemetry")
+        st.markdown("""
+        **What is this?**  
+        Real-time metrics from the engine monitoring system and AI predictions.
+        
+        **Role:**  
+        - **Predicted Life (RUL)**: Remaining Useful Life estimated by the AI model
+        - **Engine RPM**: Current throttle level (AI automatically reduces RPM when failure is predicted)
+        - **Sensor 1**: Live temperature reading from the first engine sensor
+        - **Status Alerts**: AI-driven warnings and automatic safety interventions
+        """)
         metric_placeholder = st.empty()
-        chart_placeholder = st.empty()
         alert_placeholder = st.empty()
+    
+    # Graph section below control panel
+    st.markdown("---")  # Visual separator
+    st.header("📊 Degradation Trend")
+    st.markdown("**Real-time graph showing the predicted Remaining Useful Life (RUL) over engine cycles.**")
+    chart_placeholder = st.empty()
 
     # --- 5. SIMULATOR LOGIC ---
     if start_btn:
@@ -100,15 +130,17 @@ if interpreter:
 
             with alert_placeholder:
                 if engine_rpm == 75:
-                    st.warning(f"⚠️ AI DETECTED DEGRADATION (RUL {predicted_rul:.0f}). AUTO-THROTTLING ACTIVE.")
+                    st.warning(f"⚠️ DETECTED DEGRADATION (RUL {predicted_rul:.0f}). AUTO-THROTTLING ACTIVE.")
                 elif engine_rpm == 0:
                     st.error(f"🛑 FAILURE IMMINENT. EMERGENCY SHUTDOWN.")
                 else:
-                    st.success("✅ SYSTEM HEALTHY")
+                    st.success("✅ ENGINE HEALTHY")
 
-            # Update Chart
+            # Update Chart with axis labels
             rul_history.append(predicted_rul)
-            chart_placeholder.line_chart(rul_history)
+            import pandas as pd
+            chart_data = pd.DataFrame(rul_history, columns=["Remaining Useful Life (Cycles)"])
+            chart_placeholder.line_chart(chart_data, x_label="Engine Cycles", y_label="RUL (Cycles)")
 
             time.sleep(simulation_speed)
 else:
