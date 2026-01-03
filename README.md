@@ -1,11 +1,6 @@
 # ✈️ Edge AI: Self-Healing Engine Controller 
 
-<div align="center">  <a href="https://introegeai-9vdt2me7swysudy44ctw5i.streamlit.app/" target="_blank">
-
-    <img src="https://img.shields.io/badge/🚀Live-Demo-success?style=for-the-badge" alt="Live Demo">
-
-  </a> </div>
-
+<div align="center">  <a href="https://introedgeai-khsebqtgmnoguy2zptqh6q.streamlit.app/" target="_blank"><img src="https://img.shields.io/badge/🚀Live-Demo-success?style=for-the-badge" alt="Live Demo"></a> </div>
 
 
 This project demonstrates an **Edge AI Digital Twin** that simulates a jet engine's sensor data and uses a TensorFlow Lite model to predict the Remaining Useful Life (RUL). If the AI predicts a failure, the system automatically intervenes to throttle the engine or perform an emergency shutdown.
